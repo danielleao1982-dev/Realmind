@@ -1,1 +1,491 @@
 
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RealMind — Memoal</title>
+<style>
+  :root{
+    --bg1:#0ea5e9; /* azul */
+    --bg2:#1e3a8a; /* azul escuro */
+    --card:#ffffff10;
+    --card-hover:#ffffff18;
+    --text:#ffffff;
+    --ok:#22c55e;
+    --err:#ef4444;
+    --accent:#38bdf8;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100dvh; color:var(--text);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji", "Segoe UI Symbol";
+    background: linear-gradient(135deg,var(--bg1),var(--bg2));
+    display:flex; align-items:center; justify-content:center; padding:16px;
+  }
+  .app{ width:min(960px,100%); }
+  header{
+    text-align:center; margin-bottom:12px;
+  }
+  .brand{font-weight:800; letter-spacing:.3px; opacity:.9}
+  .title{font-size:clamp(22px,4.5vw,36px); font-weight:800; margin:4px 0 8px}
+  .subtitle{opacity:.9; font-size:clamp(13px,2.8vw,16px)}
+  .panel{
+    background:var(--card);
+    border:1px solid #ffffff1f;
+    border-radius:16px;
+    backdrop-filter: blur(6px);
+    padding:12px;
+    box-shadow: 0 10px 30px #00000030, inset 0 1px 0 #ffffff20;
+  }
+  .hud{
+    display:grid; grid-template-columns: repeat(4,1fr);
+    gap:8px; margin-bottom:12px;
+  }
+  .hud .kpi{
+    background:#00000020; padding:10px; border-radius:12px; text-align:center;
+    border:1px solid #ffffff14;
+  }
+  .kpi .lbl{font-size:12px; opacity:.8}
+  .kpi .val{font-weight:800; font-size:18px; margin-top:2px}
+  .bar{
+    height:8px; background:#00000030; border-radius:999px; overflow:hidden; margin-top:8px;
+  }
+  .bar > i{display:block; height:100%; width:0%;}
+  .bar.mem > i{background:linear-gradient(90deg,#22d3ee,#60a5fa)}
+  .bar.round > i{background:linear-gradient(90deg,#34d399,#a7f3d0)}
+  .prompt{
+    text-align:center; padding:10px 12px; border-radius:12px;
+    background:#00000020; border:1px solid #ffffff14; margin-bottom:12px;
+    font-weight:600;
+  }
+  .legend{
+    display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap;
+    font-size:13px; opacity:.95; margin-bottom:10px;
+  }
+  .chip{display:inline-flex; align-items:center; gap:8px; background:#00000026; border:1px solid #ffffff14; padding:6px 10px; border-radius:999px}
+  .dot{width:14px; height:14px; border-radius:50%}
+  .shape{font-weight:800; letter-spacing:.5px}
+
+  .board-wrap{
+    display:flex; justify-content:center; align-items:center;
+  }
+  .board{
+    width:min(92vw,640px); aspect-ratio:1/1;
+    display:grid; gap:8px;
+    touch-action: manipulation;
+  }
+  .tile{
+    position:relative;
+    border-radius:12px;
+    background:#00000022;
+    border:1px solid #ffffff14;
+    overflow:hidden;
+    transition:transform .08s ease, background .2s ease, border-color .2s ease;
+  }
+  .tile:active{ transform: scale(.98); }
+  .card-face{
+    position:absolute; inset:0; display:grid; place-items:center;
+    font-size: clamp(20px, 5.2vw, 34px);
+    font-weight:900;
+  }
+  .hidden-face{ opacity:0 }
+  .cover{
+    background: radial-gradient(120% 120% at 100% 0%, #ffffff18 0%, #00000030 55%, #00000055 100%);
+  }
+  .reveal{ animation: reveal .35s ease both }
+  @keyframes reveal{ from{transform:scale(.92); opacity:.2} to{transform:scale(1); opacity:1} }
+
+  .foot{
+    display:flex; gap:8px; justify-content:center; margin-top:12px; flex-wrap:wrap;
+  }
+  button{
+    all:unset; cursor:pointer; padding:10px 14px; border-radius:999px;
+    background:#00000028; border:1px solid #ffffff20; font-weight:700; font-size:14px;
+  }
+  button:hover{ background:#00000034 }
+  .primary{ background: linear-gradient(90deg,#22d3ee,#3b82f6); color:#00213b; border:none }
+  .success{ background: linear-gradient(90deg,#34d399,#10b981); color:#012b1f; border:none }
+  .danger{ background: linear-gradient(90deg,#fb7185,#ef4444); color:#3b060c; border:none }
+
+  .center{ text-align:center }
+  .muted{ opacity:.75 }
+  .pulse{ animation:pulse 1.5s ease-in-out infinite }
+  @keyframes pulse{
+    0%{ transform:scale(1) } 50%{ transform:scale(1.02) } 100%{ transform:scale(1) }
+  }
+  .shake{ animation:shake .3s }
+  @keyframes shake{ 10%,90%{transform:translateX(-2px)} 20%,80%{transform:translateX(4px)} 30%,50%,70%{transform:translateX(-6px)} 40%,60%{transform:translateX(6px)} }
+
+  /* overlays */
+  .overlay{
+    position:fixed; inset:0; display:none; place-items:center; padding:16px;
+    background: rgba(0,0,0,.55);
+  }
+  .overlay.show{ display:grid }
+  .modal{ width:min(520px,100%); }
+  .modal .panel{ padding:16px }
+</style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">RealMind</div>
+      <div class="title">Memoal</div>
+      <div class="subtitle">Treino de memória visual e espacial — simples, neutro e progressivo.</div>
+    </header>
+
+    <div class="panel">
+      <div class="hud">
+        <div class="kpi"><div class="lbl">Nível</div><div class="val" id="level">1</div></div>
+        <div class="kpi"><div class="lbl">Pontos</div><div class="val" id="score">0</div></div>
+        <div class="kpi"><div class="lbl">Recorde</div><div class="val" id="best">0</div></div>
+        <div class="kpi"><div class="lbl">Vidas</div><div class="val" id="lives">💙💙💙</div></div>
+      </div>
+
+      <div class="prompt" id="prompt">Toque em “Iniciar” para começar. Você verá posições por alguns segundos e depois deverá lembrar onde estava o alvo pedido.</div>
+
+      <div class="legend" id="legend"></div>
+
+      <div class="board-wrap">
+        <div class="board" id="board" style="grid-template-columns: repeat(3, 1fr)"></div>
+      </div>
+
+      <div class="bar mem"><i id="membar"></i></div>
+      <div class="bar round"><i id="roundbar" style="width:0%"></i></div>
+
+      <div class="foot center">
+        <button class="primary" id="startBtn">Iniciar</button>
+        <button id="pauseBtn">Pausar</button>
+        <button id="helpBtn">Ajuda</button>
+        <button id="restartBtn" class="danger" style="display:none">Reiniciar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlays -->
+  <div class="overlay" id="help">
+    <div class="modal">
+      <div class="panel">
+        <h3 style="margin:0 0 8px">Como jogar</h3>
+        <ol style="margin:0 0 10px 18px; line-height:1.5">
+          <li>Observe as posições dos símbolos na grade durante o tempo de memorização.</li>
+          <li>Quando ocultar, o jogo pedirá um alvo (ex.: <b>● Azul</b>). Toque na casa onde ele estava.</li>
+          <li>Acertos rendem pontos e aumentam a dificuldade. Você tem <b>3 vidas</b>.</li>
+        </ol>
+        <p class="muted" style="margin:10px 0 14px">Dica: respire fundo, foque nas “âncoras” (cantos e centro) e crie associações rápidas.</p>
+        <div class="foot center">
+          <button class="success" id="closeHelp">Entendi</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="gameover">
+    <div class="modal">
+      <div class="panel center">
+        <h2 style="margin:0 0 10px">Fim de jogo</h2>
+        <p style="margin:0 0 6px">Pontuação: <b id="finalScore">0</b></p>
+        <p class="muted" style="margin:0 0 14px">Recorde: <b id="finalBest">0</b></p>
+        <div class="foot center">
+          <button class="success" id="againBtn">Jogar de novo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(()=>{
+
+  // ====== Config & State ======
+  const COLORS = [
+    {name:'Azul', hex:'#60a5fa'},
+    {name:'Verde', hex:'#34d399'},
+    {name:'Amarelo', hex:'#fbbf24'},
+    {name:'Roxo', hex:'#a78bfa'},
+    {name:'Vermelho', hex:'#f87171'},
+    {name:'Ciano', hex:'#22d3ee'},
+  ];
+  const SHAPES = ['●','▲','◆','★']; // círculo, triângulo, losango, estrela
+
+  const $ = sel => document.querySelector(sel);
+  const $board = $('#board'), $prompt = $('#prompt');
+  const $level = $('#level'), $score = $('#score'), $best = $('#best'), $lives = $('#lives');
+  const $membar = $('#membar'), $roundbar = $('#roundbar');
+  const $legend = $('#legend');
+  const $start = $('#startBtn'), $pause = $('#pauseBtn'), $help = $('#helpBtn'), $restart = $('#restartBtn');
+  const $ovHelp = $('#help'), $closeHelp = $('#closeHelp');
+  const $ovOver = $('#gameover'), $again = $('#againBtn'), $finalScore = $('#finalScore'), $finalBest = $('#finalBest');
+
+  let state = {
+    running:false,
+    paused:false,
+    level:1,
+    score:0,
+    best: parseInt(localStorage.getItem('memoal_best')||'0',10),
+    lives:3,
+    grid:3,
+    itemsCount:3,
+    memorizeMs:2600,
+    roundTimeMs:8000,
+    roundTimer:null,
+    memTimer:null,
+    lock:true,
+    items:[],    // [{pos, color, shape}]
+    target:null, // item escolhido
+  };
+  $best.textContent = state.best;
+
+  function setPrompt(msg){ $prompt.textContent = msg; }
+  function setLives(n){
+    state.lives = n;
+    const hearts = ['💙','💙','💙'].slice(0,n).join('') + (n<3? ''.padEnd(3-n,' '):'');
+    $lives.textContent = n>0 ? '💙'.repeat(n) : '—';
+  }
+  function setGrid(n){
+    state.grid = n;
+    $board.style.gridTemplateColumns = `repeat(${n},1fr)`;
+  }
+  function difficultyTune(){
+    // Aumenta gradualmente a dificuldade com o nível
+    // 1-2: grid 3 / 3 itens / 2600ms
+    // 3-4: grid 4 / 4-5 itens / 2400-2200ms
+    // 5-6: grid 5 / 5-6 itens / 2000-1800ms
+    // 7+:  grid 6 / 6-7 itens / 1600ms
+    const L = state.level;
+    if(L<=2){ setGrid(3); state.itemsCount = 3; state.memorizeMs = 2600; }
+    else if(L<=4){ setGrid(4); state.itemsCount = 4 + (L===4?1:0); state.memorizeMs = 2400 - (L===4?200:0); }
+    else if(L<=6){ setGrid(5); state.itemsCount = 5 + (L===6?1:0); state.memorizeMs = 2000 - (L===6?200:0); }
+    else { setGrid(6); state.itemsCount = 6 + (L>8?1:0); state.memorizeMs = 1600; }
+  }
+
+  function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } return a }
+  function rand(arr){ return arr[Math.floor(Math.random()*arr.length)] }
+
+  function buildLegend(target){
+    // Mostra apenas o alvo (ex.: ● Azul) para clareza
+    $legend.innerHTML = '';
+    if(!target) return;
+    const chip = document.createElement('div');
+    chip.className='chip';
+    const dot = document.createElement('span');
+    dot.className='dot'; dot.style.background = target.color.hex;
+    const shape = document.createElement('span');
+    shape.className='shape'; shape.textContent = target.shape;
+    const name = document.createElement('span');
+    name.textContent = target.color.name;
+    chip.append(dot, shape, name);
+    $legend.appendChild(chip);
+  }
+
+  function drawBoard(revealed=false){
+    $board.innerHTML='';
+    const total = state.grid*state.grid;
+    for(let i=0;i<total;i++){
+      const tile = document.createElement('button');
+      tile.className='tile';
+      tile.dataset.idx = i;
+
+      const front = document.createElement('div');
+      front.className='card-face';
+      const found = state.items.find(it=>it.pos===i);
+      if(found){
+        front.textContent = found.shape;
+        front.style.textShadow = `0 0 18px ${found.color.hex}55`;
+        front.style.color = found.color.hex;
+      }else{
+        front.textContent = '';
+      }
+
+      const cover = document.createElement('div');
+      cover.className='card-face cover';
+      if(revealed) cover.classList.add('hidden-face');
+
+      tile.append(front, cover);
+      $board.appendChild(tile);
+    }
+  }
+
+  function placeItems(){
+    const total = state.grid*state.grid;
+    const positions = shuffle([...Array(total).keys()]).slice(0, state.itemsCount);
+    const combos = [];
+    const colorBag = shuffle([...COLORS]);
+    for(let i=0;i<state.itemsCount;i++){
+      const color = colorBag[i % COLORS.length];
+      const shape = rand(SHAPES);
+      combos.push({pos: positions[i], color, shape});
+    }
+    state.items = combos;
+    state.target = rand(state.items);
+    buildLegend(state.target);
+  }
+
+  function showMemorizePhase(){
+    state.lock = true;
+    placeItems();
+    drawBoard(true);
+    setPrompt('Memorize as posições…');
+    progressBar($membar, state.memorizeMs);
+    clearTimeout(state.memTimer);
+    state.memTimer = setTimeout(()=>{
+      hideItemsPhase();
+    }, state.memorizeMs);
+  }
+
+  function hideItemsPhase(){
+    // Oculta (mostra a capa)
+    [...$board.children].forEach(tile=>{
+      const cover = tile.querySelector('.cover');
+      cover.classList.remove('hidden-face');
+    });
+    askTarget();
+  }
+
+  function askTarget(){
+    state.lock = false;
+    setPrompt(`Onde estava: ${state.target.shape} ${state.target.color.name}? Toque na casa correta.`);
+    startRoundTimer();
+  }
+
+  function startRoundTimer(){
+    const ms = state.roundTimeMs;
+    let start = performance.now();
+    cancelAnimationFrame(state.roundTimer);
+    const step = (t)=>{
+      const elapsed = t - start;
+      const pct = Math.min(100, (elapsed / ms)*100);
+      $roundbar.style.width = pct+'%';
+      if(elapsed < ms && state.running && !state.paused){
+        state.roundTimer = requestAnimationFrame(step);
+      }else if(elapsed >= ms && state.running && !state.paused){
+        // tempo esgotou = erro
+        handlePick(null);
+      }
+    };
+    state.roundTimer = requestAnimationFrame(step);
+  }
+
+  function progressBar(el, ms){
+    el.style.width = '0%';
+    let start = performance.now();
+    const tick = (t)=>{
+      const pct = Math.min(100, ((t-start)/ms)*100);
+      el.style.width = pct+'%';
+      if(pct<100){ requestAnimationFrame(tick); }
+    };
+    requestAnimationFrame(tick);
+  }
+
+  function handlePick(idx){
+    if(state.lock || state.paused) return;
+    state.lock = true;
+    cancelAnimationFrame(state.roundTimer);
+    $roundbar.style.width='0%';
+
+    const correct = (idx!==null && Number(idx)===state.target.pos);
+
+    // revela o correto e aplica feedback
+    [...$board.children].forEach(tile=>{
+      const cover = tile.querySelector('.cover');
+      const i = Number(tile.dataset.idx);
+      const isCorrect = i===state.target.pos;
+      if(isCorrect){ cover.classList.add('hidden-face'); tile.classList.add('reveal'); }
+      if(idx!==null && i===Number(idx) && !correct){
+        tile.classList.add('shake');
+      }
+    });
+
+    if(correct){
+      const earned = 10 + (state.level*2);
+      state.score += earned;
+      $score.textContent = state.score;
+      setPrompt(`Acertou! +${earned} pontos. Próxima rodada…`);
+      setTimeout(nextRound, 700);
+    }else{
+      setPrompt(`Ops — resposta incorreta. O alvo estava ali.`);
+      setLives(state.lives - 1);
+      if(state.lives<=0){
+        return setTimeout(gameOver, 850);
+      }
+      // leve “alívio” de dificuldade após erro
+      state.level = Math.max(1, state.level-1);
+      setTimeout(nextRound, 1000);
+    }
+  }
+
+  function nextRound(){
+    state.level++;
+    $level.textContent = state.level;
+    difficultyTune();
+    showMemorizePhase();
+  }
+
+  function startGame(){
+    state.running = true; state.paused = false;
+    state.level = 1; state.score = 0; state.lives = 3;
+    $level.textContent = state.level; $score.textContent = 0;
+    setLives(3); $restart.style.display='inline-block';
+    difficultyTune();
+    showMemorizePhase();
+  }
+
+  function gameOver(){
+    state.running = false;
+    const best = Math.max(state.best, state.score);
+    state.best = best;
+    localStorage.setItem('memoal_best', String(best));
+    $best.textContent = best;
+    $finalScore.textContent = state.score;
+    $finalBest.textContent = best;
+    $ovOver.classList.add('show');
+  }
+
+  function togglePause(){
+    if(!state.running) return;
+    state.paused = !state.paused;
+    if(state.paused){
+      setPrompt('Pausado. Toque em “Pausar” novamente para continuar.');
+    }else{
+      setPrompt('Continuando…');
+      if([...$board.querySelectorAll('.cover.hidden-face')].length){ // ainda em memorização
+        // não reanima a memorização; segue para perguntar
+        hideItemsPhase();
+      }else{
+        // retoma o timer da rodada
+        startRoundTimer();
+      }
+    }
+  }
+
+  // ====== Events ======
+  $board.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.tile');
+    if(!btn) return;
+    handlePick(btn.dataset.idx);
+  });
+
+  $start.addEventListener('click', ()=>{
+    startGame();
+  });
+  $restart.addEventListener('click', ()=>{
+    startGame();
+  });
+  $pause.addEventListener('click', togglePause);
+
+  $help.addEventListener('click', ()=> $ovHelp.classList.add('show'));
+  $closeHelp.addEventListener('click', ()=> $ovHelp.classList.remove('show'));
+  $again.addEventListener('click', ()=>{
+    $ovOver.classList.remove('show');
+    startGame();
+  });
+
+  // ====== Initial UI ======
+  setGrid(3);
+  drawBoard(false);
+  setLives(3);
+  setPrompt('Toque em “Iniciar” para começar. Memorize e depois indique a posição do alvo pedido.');
+})();
+</script>
+</body>
+</html>
