@@ -1,0 +1,47 @@
+<!doctype html><html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jogo da Memória</title>
+
+<style>
+body{margin:0;color:#fff;background:linear-gradient(135deg,#00c6ff,#0072ff);
+      font-family:Arial,sans-serif;text-align:center;min-height:100vh;display:flex;flex-direction:column}
+header{padding:20px;background:rgba(0,0,0,.25)}
+main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px}
+.btn{display:inline-block;margin:10px;padding:12px 18px;border-radius:12px;
+     background:rgba(255,255,255,.15);color:#fff;text-decoration:none;font-weight:bold;font-size:16px}
+.btn:hover{background:rgba(255,255,255,.28)}
+.info{opacity:.9;margin-top:8px}
+footer{padding:14px;opacity:.7}
+.card{background:rgba(255,255,255,.12);padding:16px;border-radius:14px;box-shadow:0 6px 16px rgba(0,0,0,.15)}
+</style>
+
+<style>
+.grid{display:grid;grid-template-columns:repeat(4,70px);gap:10px;justify-content:center}
+.cardc{width:70px;height:70px;border-radius:12px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;
+       font-size:28px;cursor:pointer;user-select:none;box-shadow:0 8px 18px rgba(0,0,0,.2)}
+.cardc.revealed{background:#fff;color:#123}
+</style></head><body>
+<header><h1>🧠 Jogo da Memória</h1></header>
+<main>
+  <div id="grid" class="grid"></div>
+  <div style="margin-top:12px">
+    <button class="btn" id="again">🔄 Reiniciar</button>
+    <a class="btn" href="jogos.html">⬅️ Voltar</a>
+  </div>
+</main>
+<script>
+const symbols=['🍀','🌙','⭐','🌸','🍎','🎧','💎','🐾'].slice(0,4); // 4 pares
+let deck=[...symbols,...symbols].sort(()=>Math.random()-0.5);
+let ding=new Audio('sons/ding.mp3'), beep=new Audio('sons/beep.mp3');
+const grid=document.getElementById('grid'); let first=null, lock=false;
+function render(){
+  grid.innerHTML=''; deck.forEach((s,i)=>{ const c=document.createElement('div'); c.className='cardc'; c.dataset.i=i; c.onclick=()=>reveal(c,s); grid.appendChild(c); });
+}
+function reveal(el,s){ if(lock||el.classList.contains('revealed')) return; el.classList.add('revealed'); el.textContent=s;
+  if(!first){ first={el,s}; } else { lock=true; if(first.s===s){ try{ding.currentTime=0;ding.play();}catch{}; setTimeout(()=>{ lock=false; first=null; },300); }
+    else { try{beep.currentTime=0;beep.play();}catch{}; setTimeout(()=>{ el.classList.remove('revealed'); el.textContent=''; first.el.classList.remove('revealed'); first.el.textContent=''; first=null; lock=false; },600); } }
+}
+document.getElementById('again').onclick=()=>{ deck=[...symbols,...symbols].sort(()=>Math.random()-0.5); first=null; render(); }
+render();
+</script>
+</body></html>

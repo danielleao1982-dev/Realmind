@@ -1,0 +1,50 @@
+<!doctype html><html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chuva Relaxante</title>
+
+<style>
+body{margin:0;color:#fff;background:linear-gradient(135deg,#00c6ff,#0072ff);
+      font-family:Arial,sans-serif;text-align:center;min-height:100vh;display:flex;flex-direction:column}
+header{padding:20px;background:rgba(0,0,0,.25)}
+main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px}
+.btn{display:inline-block;margin:10px;padding:12px 18px;border-radius:12px;
+     background:rgba(255,255,255,.15);color:#fff;text-decoration:none;font-weight:bold;font-size:16px}
+.btn:hover{background:rgba(255,255,255,.28)}
+.info{opacity:.9;margin-top:8px}
+footer{padding:14px;opacity:.7}
+.card{background:rgba(255,255,255,.12);padding:16px;border-radius:14px;box-shadow:0 6px 16px rgba(0,0,0,.15)}
+</style>
+
+<style>
+#sky{position:relative;width:min(92vw,520px);height:60vh;border-radius:16px;background:linear-gradient(#0a2540,#020b17);
+     overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.drop{position:absolute;width:2px;height:16px;background:rgba(255,255,255,.6);animation:fall 1s linear infinite}
+@keyframes fall{to{transform:translateY(70vh)}}
+.flash{position:absolute;inset:0;background:rgba(255,255,255,.0)}
+.flash.on{animation:blink .6s ease-out}
+@keyframes blink{0%{background:rgba(255,255,255,.8)}100%{background:rgba(255,255,255,0)}}
+</style></head><body>
+<header><h1>🌧️ Chuva Relaxante</h1></header>
+<main>
+  <div id="sky"><div id="flash" class="flash"></div></div>
+  <div style="margin-top:12px">
+    <button class="btn" id="sound">🔊 Som da chuva</button>
+    <button class="btn" id="light">⚡ Relâmpago</button>
+    <a class="btn" href="jogos.html">⬅️ Voltar</a>
+  </div>
+</main>
+<script>
+const sky=document.getElementById('sky'); const flash=document.getElementById('flash');
+let rainAudio, thunderAudio;
+function mkDrop(){
+  const d=document.createElement('div'); d.className='drop';
+  d.style.left=Math.random()*100+'%'; d.style.animationDuration=(0.7+Math.random()*0.8)+'s';
+  sky.appendChild(d); setTimeout(()=>sky.removeChild(d),2000);
+}
+setInterval(mkDrop,80);
+document.getElementById('sound').onclick=()=>{ if(!rainAudio) rainAudio=new Audio('sons/chuva.mp3'); rainAudio.loop=true;
+  if(rainAudio.paused){rainAudio.play().catch(()=>alert('Toque na tela para liberar o som.')); document.getElementById('sound').textContent='🔇 Silenciar';} else {rainAudio.pause(); document.getElementById('sound').textContent='🔊 Som da chuva';} };
+document.getElementById('light').onclick=()=>{ flash.classList.add('on'); setTimeout(()=>flash.classList.remove('on'),600); 
+  if(!thunderAudio) thunderAudio=new Audio('sons/trovao.mp3'); try{thunderAudio.currentTime=0; thunderAudio.play();}catch{} };
+</script>
+</body></html>

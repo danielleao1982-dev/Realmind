@@ -1,0 +1,59 @@
+<!doctype html><html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Areia Zen</title>
+
+<style>
+body{margin:0;color:#fff;background:linear-gradient(135deg,#00c6ff,#0072ff);
+      font-family:Arial,sans-serif;text-align:center;min-height:100vh;display:flex;flex-direction:column}
+header{padding:20px;background:rgba(0,0,0,.25)}
+main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px}
+.btn{display:inline-block;margin:10px;padding:12px 18px;border-radius:12px;
+     background:rgba(255,255,255,.15);color:#fff;text-decoration:none;font-weight:bold;font-size:16px}
+.btn:hover{background:rgba(255,255,255,.28)}
+.info{opacity:.9;margin-top:8px}
+footer{padding:14px;opacity:.7}
+.card{background:rgba(255,255,255,.12);padding:16px;border-radius:14px;box-shadow:0 6px 16px rgba(0,0,0,.15)}
+</style>
+
+<style>
+#cv{touch-action:none;background:#F2E6C9;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.25);
+    width:min(92vw,520px);height:60vh;max-height:520px}
+</style></head><body>
+<header><h1>🏖️ Areia Zen</h1><p class="info">Deslize o dedo e desenhe na areia</p></header>
+<main>
+  <canvas id="cv"></canvas>
+  <div style="margin-top:12px">
+    <button class="btn" id="clear">🧹 Limpar</button>
+    <a class="btn" href="jogos.html">⬅️ Voltar</a>
+  </div>
+</main>
+<script>
+const cv=document.getElementById('cv'); const ctx=cv.getContext('2d');
+function resize(){
+  const r=cv.getBoundingClientRect();
+  const dpr=window.devicePixelRatio||1;
+  cv.width=r.width*dpr; cv.height=r.height*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+  drawBg();
+}
+function drawBg(){
+  const g=ctx.createLinearGradient(0,0,0,cv.height); g.addColorStop(0,'#F6EBD2'); g.addColorStop(1,'#EAD9B6');
+  ctx.fillStyle=g; ctx.fillRect(0,0,cv.width,cv.height);
+}
+new ResizeObserver(resize).observe(cv); setTimeout(resize,0);
+let drawing=false, last=null;
+function line(a,b){
+  ctx.strokeStyle='rgba(160,120,60,.75)'; ctx.lineWidth=8; ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+}
+function pos(e){
+  const r=cv.getBoundingClientRect();
+  const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+  const y=(e.touches?e.touches[0].clientY:e.clientY)-r.top;
+  return {x,y};
+}
+cv.addEventListener('pointerdown',e=>{ drawing=true; last=pos(e); navigator.vibrate&&navigator.vibrate(10); });
+cv.addEventListener('pointermove',e=>{ if(!drawing) return; const p=pos(e); line(last,p); last=p; });
+['pointerup','pointerleave','pointercancel'].forEach(ev=>cv.addEventListener(ev,()=>drawing=false));
+document.getElementById('clear').onclick=drawBg;
+</script>
+</body></html>

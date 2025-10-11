@@ -1,0 +1,39 @@
+<!doctype html><html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Foco Auditivo</title>
+
+<style>
+body{margin:0;color:#fff;background:linear-gradient(135deg,#00c6ff,#0072ff);
+      font-family:Arial,sans-serif;text-align:center;min-height:100vh;display:flex;flex-direction:column}
+header{padding:20px;background:rgba(0,0,0,.25)}
+main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px}
+.btn{display:inline-block;margin:10px;padding:12px 18px;border-radius:12px;
+     background:rgba(255,255,255,.15);color:#fff;text-decoration:none;font-weight:bold;font-size:16px}
+.btn:hover{background:rgba(255,255,255,.28)}
+.info{opacity:.9;margin-top:8px}
+footer{padding:14px;opacity:.7}
+.card{background:rgba(255,255,255,.12);padding:16px;border-radius:14px;box-shadow:0 6px 16px rgba(0,0,0,.15)}
+</style>
+
+<style>
+.pad{border:none;padding:14px 18px;margin:8px;border-radius:12px;background:#fff;color:#123;font-weight:800}
+</style></head><body>
+<header><h1>🔊 Foco Auditivo</h1><p class="info">Toque apenas no <b>som alvo</b>.</p></header>
+<main>
+  <div class="card">
+    <p>Som alvo: <b id="targetLabel">ding</b></p>
+    <div>
+      <button class="pad" data-n="ding">DING</button>
+      <button class="pad" data-n="beep">BEEP</button>
+      <button class="pad" data-n="relax">WAVE</button>
+    </div>
+    <div style="margin-top:10px"><button class="btn" id="next">🔄 Novo alvo</button> <a class="btn" href="jogos.html">⬅️ Voltar</a></div>
+  </div>
+</main>
+<script>
+const sounds={ding:new Audio('sons/ding.mp3'), beep:new Audio('sons/beep.mp3'), relax:new Audio('sons/relax.mp3')};
+const names=Object.keys(sounds); let target='ding'; function pick(){ target=names[Math.floor(Math.random()*names.length)]; document.getElementById('targetLabel').textContent=target; }
+document.querySelectorAll('.pad').forEach(b=>b.onclick=()=>{ const n=b.dataset.n; try{ sounds[n].currentTime=0; sounds[n].play(); }catch{}; if(n===target) b.animate([{transform:'scale(1)'},{transform:'scale(1.1)'},{transform:'scale(1)'}],{duration:180}); });
+document.getElementById('next').onclick=pick; pick();
+</script>
+</body></html>

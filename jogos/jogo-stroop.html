@@ -1,0 +1,44 @@
+<!doctype html><html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cores Conflitantes (Stroop)</title>
+
+<style>
+body{margin:0;color:#fff;background:linear-gradient(135deg,#00c6ff,#0072ff);
+      font-family:Arial,sans-serif;text-align:center;min-height:100vh;display:flex;flex-direction:column}
+header{padding:20px;background:rgba(0,0,0,.25)}
+main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px}
+.btn{display:inline-block;margin:10px;padding:12px 18px;border-radius:12px;
+     background:rgba(255,255,255,.15);color:#fff;text-decoration:none;font-weight:bold;font-size:16px}
+.btn:hover{background:rgba(255,255,255,.28)}
+.info{opacity:.9;margin-top:8px}
+footer{padding:14px;opacity:.7}
+.card{background:rgba(255,255,255,.12);padding:16px;border-radius:14px;box-shadow:0 6px 16px rgba(0,0,0,.15)}
+</style>
+
+<style>
+.word{font-size:42px;font-weight:900;margin:10px 0}
+.opts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.opt{border:none;padding:10px 14px;border-radius:10px;background:#fff;color:#123;font-weight:700}
+</style></head><body>
+<header><h1>🎨 Cores Conflitantes</h1><p class="info">Escolha a <b>cor</b>, não a palavra.</p></header>
+<main>
+  <div class="card">
+    <div id="word" class="word">AZUL</div>
+    <div class="opts" id="opts"></div>
+    <div style="margin-top:10px"><button class="btn" id="next">🔄 Próximo</button>
+    <a class="btn" href="jogos.html">⬅️ Voltar</a></div>
+  </div>
+</main>
+<script>
+const COLORS={"VERMELHO":"#ff4b5c","AZUL":"#4b9bff","VERDE":"#42d392","AMARELO":"#f7d154","ROXO":"#b095ff"};
+const names=Object.keys(COLORS); let ding=new Audio('sons/ding.mp3'), beep=new Audio('sons/beep.mp3');
+function round(){
+  const word=document.getElementById('word'); const opts=document.getElementById('opts'); opts.innerHTML='';
+  const text=names[Math.floor(Math.random()*names.length)];
+  const shownColor=COLORS[names[Math.floor(Math.random()*names.length)]];
+  word.textContent=text; word.style.color=shownColor;
+  names.forEach(n=>{ const b=document.createElement('button'); b.className='opt'; b.textContent=n; b.onclick=()=>{ if(COLORS[n]===shownColor){ try{ding.currentTime=0;ding.play();}catch{}; round(); } else { try{beep.currentTime=0;beep.play();}catch{}; b.animate([{transform:'scale(1)'},{transform:'scale(1.08)'},{transform:'scale(1)'}],{duration:180}); } }; opts.appendChild(b); });
+}
+document.getElementById('next').onclick=round; round();
+</script>
+</body></html>

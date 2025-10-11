@@ -1,0 +1,43 @@
+<!doctype html><html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Respiração Guiada</title>
+
+<style>
+body{margin:0;color:#fff;background:linear-gradient(135deg,#00c6ff,#0072ff);
+      font-family:Arial,sans-serif;text-align:center;min-height:100vh;display:flex;flex-direction:column}
+header{padding:20px;background:rgba(0,0,0,.25)}
+main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px}
+.btn{display:inline-block;margin:10px;padding:12px 18px;border-radius:12px;
+     background:rgba(255,255,255,.15);color:#fff;text-decoration:none;font-weight:bold;font-size:16px}
+.btn:hover{background:rgba(255,255,255,.28)}
+.info{opacity:.9;margin-top:8px}
+footer{padding:14px;opacity:.7}
+.card{background:rgba(255,255,255,.12);padding:16px;border-radius:14px;box-shadow:0 6px 16px rgba(0,0,0,.15)}
+</style>
+
+<style>
+.circle{width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.25);
+        animation:breath 8s ease-in-out infinite;box-shadow:0 0 40px rgba(255,255,255,.25) inset}
+@keyframes breath{0%{transform:scale(1);opacity:.7}50%{transform:scale(1.45);opacity:1}100%{transform:scale(1);opacity:.7}}
+</style></head><body>
+<header><h1>🌬️ Respiração Guiada</h1></header>
+<main>
+  <div class="card">
+    <div class="circle"></div>
+    <p class="info" id="tip">Inspire quando o círculo cresce, expire quando ele diminui.</p>
+    <div style="margin-top:10px">
+      <button class="btn" id="soundBtn">🔊 Som de fundo</button>
+      <a class="btn" href="jogos.html">⬅️ Voltar</a>
+    </div>
+  </div>
+</main>
+<script>
+let audio; 
+document.getElementById('soundBtn').onclick = () => {
+  if(!audio) audio = new Audio('sons/vento.mp3');
+  audio.loop = true;
+  if(audio.paused) { audio.play().catch(()=>alert('Ative o som após tocar na tela.')); document.getElementById('soundBtn').textContent='🔇 Silenciar'; }
+  else { audio.pause(); document.getElementById('soundBtn').textContent='🔊 Som de fundo'; }
+};
+</script>
+</body></html>
